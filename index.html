@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moti Sot</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{min-height:100vh;font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;padding:20px;transition:background 1s ease}
+  .bg-clear{background:linear-gradient(160deg,#56CCF2,#2F80ED)}
+  .bg-clouds{background:linear-gradient(160deg,#757F9A,#D7DDE8)}
+  .bg-rain{background:linear-gradient(160deg,#3a3a4a,#4a5568)}
+  .bg-snow{background:linear-gradient(160deg,#a8edea,#fed6e3)}
+  .bg-night{background:linear-gradient(160deg,#0f0c29,#302b63,#24243e)}
+  .card{background:rgba(255,255,255,0.18);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3);border-radius:32px;padding:36px;width:100%;max-width:420px;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+  .search{display:flex;gap:10px;margin-bottom:32px}
+  .search input{flex:1;background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.3);border-radius:14px;padding:12px 18px;font-family:'Nunito',sans-serif;font-size:15px;color:#fff;outline:none}
+  .search input::placeholder{color:rgba(255,255,255,0.6)}
+  .search input:focus{background:rgba(255,255,255,0.28)}
+  .search button{background:rgba(255,255,255,0.25);border:1.5px solid rgba(255,255,255,0.3);border-radius:14px;padding:12px 18px;cursor:pointer;font-size:18px;transition:background .2s}
+  .search button:hover{background:rgba(255,255,255,0.4)}
+  .city-name{font-size:28px;font-weight:800;margin-bottom:4px}
+  .city-date{font-size:14px;opacity:.7;margin-bottom:24px}
+  .main-temp{display:flex;align-items:flex-start;gap:0;margin-bottom:8px}
+  .temp-big{font-size:88px;font-weight:300;line-height:1}
+  .temp-unit{font-size:28px;margin-top:14px;opacity:.8}
+  .desc{font-size:20px;opacity:.8;margin-bottom:28px;text-transform:capitalize}
+  .icon{font-size:72px;margin-bottom:12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .detail{background:rgba(255,255,255,0.15);border-radius:18px;padding:16px;text-align:center}
+  .detail-icon{font-size:22px;margin-bottom:6px}
+  .detail-val{font-size:22px;font-weight:700}
+  .detail-lbl{font-size:12px;opacity:.65;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .forecast{margin-top:16px;background:rgba(255,255,255,0.1);border-radius:20px;padding:16px;display:flex;justify-content:space-around}
+  .fc-item{text-align:center}
+  .fc-day{font-size:12px;opacity:.6;margin-bottom:4px}
+  .fc-icon{font-size:20px}
+  .fc-temp{font-size:14px;font-weight:700;margin-top:4px}
+  .error{background:rgba(255,80,80,0.25);border-radius:16px;padding:16px;text-align:center;margin-top:16px;display:none}
+</style>
+</head>
+<body class="bg-clear" id="body">
+<div class="card">
+  <div class="search">
+    <input type="text" id="inp" placeholder="Kerkoni qytetin..." value="Tirane">
+    <button onclick="search()">🔍</button>
+  </div>
+  <div id="content">
+    <div class="icon" id="icon">⛅</div>
+    <div class="city-name" id="city">Tirane, AL</div>
+    <div class="city-date" id="dateStr"></div>
+    <div class="main-temp"><div class="temp-big" id="temp">22</div><div class="temp-unit">°C</div></div>
+    <div class="desc" id="desc">Pjeserisht i vrenjtur</div>
+    <div class="grid">
+      <div class="detail"><div class="detail-icon">💧</div><div class="detail-val" id="hum">58%</div><div class="detail-lbl">Lagështia</div></div>
+      <div class="detail"><div class="detail-icon">💨</div><div class="detail-val" id="wind">12 km/h</div><div class="detail-lbl">Era</div></div>
+      <div class="detail"><div class="detail-icon">👁️</div><div class="detail-val" id="vis">10 km</div><div class="detail-lbl">Dukshmeria</div></div>
+      <div class="detail"><div class="detail-icon">🌡️</div><div class="detail-val" id="feel">20°C</div><div class="detail-lbl">Ndihet si</div></div>
+    </div>
+    <div class="forecast" id="forecast"></div>
+  </div>
+  <div class="error" id="err">Qyteti nuk u gjet. Provo perseri.</div>
+</div>
+<script>
+const cities={
+  "tirane":{n:"Tirane, AL",t:22,h:58,w:12,v:10,f:21,d:"Pjeserisht i vrenjtur",i:"⛅",bg:"bg-clouds",fc:[{d:"Nes",i:"🌤️",t:24},{d:"E Mar",i:"☀️",t:27},{d:"E Mer",i:"🌧️",t:18},{d:"E Enj",i:"⛅",t:22},{d:"E Pre",i:"☀️",t:25}]},
+  "shkoder":{n:"Shkoder, AL",t:19,h:72,w:8,v:15,f:18,d:"Me shi",i:"🌧️",bg:"bg-rain",fc:[{d:"Nes",i:"🌦️",t:20},{d:"E Mar",i:"⛅",t:22},{d:"E Mer",i:"☀️",t:26},{d:"E Enj",i:"🌤️",t:24},{d:"E Pre",i:"⛅",t:21}]},
+  "vlore":{n:"Vlore, AL",t:28,h:45,w:15,v:20,f:27,d:"I ndritur",i:"☀️",bg:"bg-clear",fc:[{d:"Nes",i:"☀️",t:29},{d:"E Mar",i:"☀️",t:30},{d:"E Mer",i:"🌤️",t:27},{d:"E Enj",i:"⛅",t:25},{d:"E Pre",i:"☀️",t:28}]},
+  "durres":{n:"Durres, AL",t:25,h:55,w:10,v:18,f:24,d:"I qarte",i:"🌤️",bg:"bg-clear",fc:[{d:"Nes",i:"🌤️",t:26},{d:"E Mar",i:"☀️",t:28},{d:"E Mer",i:"⛅",t:24},{d:"E Enj",i:"🌧️",t:20},{d:"E Pre",i:"🌤️",t:23}]},
+  "korce":{n:"Korce, AL",t:15,h:65,w:20,v:12,f:13,d:"Me re",i:"🌥️",bg:"bg-clouds",fc:[{d:"Nes",i:"🌥️",t:16},{d:"E Mar",i:"⛅",t:18},{d:"E Mer",i:"☀️",t:21},{d:"E Enj",i:"🌤️",t:19},{d:"E Pre",i:"⛅",t:17}]},
+};
+const months=["Janar","Shkurt","Mars","Prill","Maj","Qershor","Korrik","Gusht","Shtator","Tetor","Nentor","Dhjetor"];
+const days=["E Diel","E Hene","E Marte","E Merkure","E Enjte","E Premte","E Shtune"];
+function setDate(){const d=new Date();document.getElementById('dateStr').textContent=days[d.getDay()]+', '+d.getDate()+' '+months[d.getMonth()];}
+function search(){
+  const key=document.getElementById('inp').value.toLowerCase().trim();
+  const data=cities[key];
+  document.getElementById('err').style.display='none';
+  if(!data){document.getElementById('err').style.display='block';return;}
+  document.getElementById('city').textContent=data.n;
+  document.getElementById('temp').textContent=data.t;
+  document.getElementById('desc').textContent=data.d;
+  document.getElementById('icon').textContent=data.i;
+  document.getElementById('hum').textContent=data.h+'%';
+  document.getElementById('wind').textContent=data.w+' km/h';
+  document.getElementById('vis').textContent=data.v+' km';
+  document.getElementById('feel').textContent=data.f+'°C';
+  document.getElementById('body').className=data.bg;
+  const fc=document.getElementById('forecast');
+  fc.innerHTML=data.fc.map(f=>`<div class="fc-item"><div class="fc-day">${f.d}</div><div class="fc-icon">${f.i}</div><div class="fc-temp">${f.t}°</div></div>`).join('');
+}
+document.getElementById('inp').addEventListener('keydown',e=>{if(e.key==='Enter')search();});
+setDate();search();
+</script>
+</body>
+</html>
